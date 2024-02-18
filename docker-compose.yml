@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: docker/app/app.dockerfile
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www:cached
+
+  web:
+    build:
+      context: ./
+      dockerfile: docker/web/web.dockerfile
+    working_dir: /var/www
+    volumes_from:
+      - app
+    ports:
+      - "9000:80"
+
+  database:
+    build:
+      context: ./
+      dockerfile: docker/mysql/mysql.dockerfile
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - "MYSQL_DATABASE=database"
+      - "MYSQL_USER=homestead"
+      - "MYSQL_PASSWORD=secret"
+      - "MYSQL_ROOT_PASSWORD=secret"
+    ports:
+      - "33061:3306"
+    volumes:
+      - dbdata:/var/lib/mysql:cached
+
+  mailhog:
+    build:
+      context: ./
+      dockerfile: docker/mailhog/mailhog.dockerfile
+    ports:
+      - "9025:8025"
+
+volumes:
+  dbdata:
+
+networks:
+  sticker-bot:
+    driver: bridge
